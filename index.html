@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Painter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="controls">
+        <label>Width: <input type="number" id="canvasWidth" value="16" min="1" max="128"></label>
+        <label>Height: <input type="number" id="canvasHeight" value="16" min="1" max="128"></label>
+        <button id="resizeCanvas">Set Size/Clean</button>
+        <input type="color" id="colorPicker" value="#000000">
+    </div>
+    <canvas id="pixelCanvas" width="256" height="256"></canvas>
+    <script src="app.js"></script>
+</body>
+</html>
