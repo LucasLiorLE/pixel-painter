@@ -51,26 +51,10 @@ function createWindow() {
       label: 'File',
       submenu: [
         {
-          label: 'Export As...',
+          label: 'Export',
           click: async () => {
             const { canceled, filePath } = await dialog.showSaveDialog(win, {
-              title: 'Export As...',
-              defaultPath: 'pixel-art.png',
-              filters: [
-                { name: 'PNG Image', extensions: ['png'] },
-                { name: 'JPEG Image', extensions: ['jpg', 'jpeg'] },
-              ],
-            });
-            if (!canceled && filePath) {
-              win.webContents.send('export-image', filePath);
-            }
-          },
-        },
-        {
-          label: 'Export as .pp',
-          click: async () => {
-            const { canceled, filePath } = await dialog.showSaveDialog(win, {
-              title: 'Export as .pp',
+              title: 'Export',
               defaultPath: 'pixel-art.pp',
               filters: [
                 { name: 'PixelPainterPP', extensions: ['pp'] },
@@ -82,10 +66,10 @@ function createWindow() {
           },
         },
         {
-          label: 'Import .pp',
+          label: 'Import',
           click: async () => {
             const { canceled, filePaths } = await dialog.showOpenDialog(win, {
-              title: 'Import .pp',
+              title: 'Import',
               filters: [
                 { name: 'PixelPainterPP', extensions: ['pp'] },
               ],
@@ -101,6 +85,56 @@ function createWindow() {
               });
             }
           },
+        },
+        {
+          label: 'Export As',
+          submenu: [
+            {
+              label: 'PNG',
+              click: async () => {
+                const { canceled, filePath } = await dialog.showSaveDialog(win, {
+                  title: 'Export as PNG',
+                  defaultPath: 'pixel-art.png',
+                  filters: [
+                    { name: 'PNG Image', extensions: ['png'] },
+                  ],
+                });
+                if (!canceled && filePath) {
+                  win.webContents.send('export-image', filePath);
+                }
+              },
+            },
+            {
+              label: 'JPG',
+              click: async () => {
+                const { canceled, filePath } = await dialog.showSaveDialog(win, {
+                  title: 'Export as JPG',
+                  defaultPath: 'pixel-art.jpg',
+                  filters: [
+                    { name: 'JPEG Image', extensions: ['jpg', 'jpeg'] },
+                  ],
+                });
+                if (!canceled && filePath) {
+                  win.webContents.send('export-image', filePath);
+                }
+              },
+            },
+            {
+              label: 'PP',
+              click: async () => {
+                const { canceled, filePath } = await dialog.showSaveDialog(win, {
+                  title: 'Export as .pp',
+                  defaultPath: 'pixel-art.pp',
+                  filters: [
+                    { name: 'PixelPainterPP', extensions: ['pp'] },
+                  ],
+                });
+                if (!canceled && filePath) {
+                  win.webContents.send('export-pp', filePath);
+                }
+              },
+            },
+          ],
         },
       ],
     },

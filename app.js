@@ -22,6 +22,14 @@ let redoStack = [];
 let isDrawing = false;
 let isErasing = false;
 let lastDrawnPos = null;
+let isDraggingSymmetry = false;
+
+let horizontalSymmetryActive = false;
+let verticalSymmetryActive = false;
+let horizontalAxis = Math.floor(pixelHeight / 2);
+let verticalAxis = Math.floor(pixelWidth / 2);
+const horizontalSymmetryBtn = document.getElementById('horizontalSymmetryBtn');
+const verticalSymmetryBtn = document.getElementById('verticalSymmetryBtn');
 
 function drawGrid() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -51,6 +59,26 @@ canvas.addEventListener('mousedown', function(e) {
         erasePixel(e);
         return;
     }
+
+    if (e.shiftKey) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = Math.floor((e.clientX - rect.left) / pixelSize);
+        const mouseY = Math.floor((e.clientY - rect.top) / pixelSize);
+        let updated = false;
+        if (horizontalSymmetryActive) {
+            horizontalAxis = Math.max(0, Math.min(pixelHeight - 1, mouseY));
+            updated = true;
+        }
+        if (verticalSymmetryActive) {
+            verticalAxis = Math.max(0, Math.min(pixelWidth - 1, mouseX));
+            updated = true;
+        }
+        if (updated) {
+            redrawFromHistory();
+            drawSymmetryAxes();
+            return;
+        }
+    }
     isDrawing = true;
     lastDrawnPos = null;
     drawPixel(e, true);
@@ -59,7 +87,7 @@ canvas.addEventListener('contextmenu', function(e) {
     e.preventDefault();
 });
 canvas.addEventListener('mousemove', function(e) {
-    if (isDrawing) {
+    if (isDrawing && !isDraggingSymmetry) {
         drawPixel(e, false);
     } else if (isErasing) {
         erasePixel(e);
@@ -77,14 +105,86 @@ function erasePixel(e) {
     if (lastDrawnPos && lastDrawnPos.x === x && lastDrawnPos.y === y) {
         return;
     }
+
     for (let i = history.length - 1; i >= 0; i--) {
         if (history[i].x === x && history[i].y === y) {
             history.splice(i, 1);
             break;
         }
     }
+
+    if (horizontalSymmetryActive) {
+        const mirrorY = horizontalAxis * 2 - y;
+        if (mirrorY >= 0 && mirrorY < pixelHeight && mirrorY !== y) {
+            for (let i = history.length - 1; i >= 0; i--) {
+                if (history[i].x === x && history[i].y === mirrorY) {
+                    history.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    }
+    if (verticalSymmetryActive) {
+        const mirrorX = verticalAxis * 2 - x;
+        if (mirrorX >= 0 && mirrorX < pixelWidth && mirrorX !== x) {
+            for (let i = history.length - 1; i >= 0; i--) {
+                if (history[i].x === mirrorX && history[i].y === y) {
+                    history.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (horizontalSymmetryActive && verticalSymmetryActive) {
+        const mirrorY = horizontalAxis * 2 - y;
+        const mirrorX = verticalAxis * 2 - x;
+        if (mirrorY >= 0 && mirrorY < pixelHeight && mirrorY !== y && mirrorX >= 0 && mirrorX < pixelWidth && mirrorX !== x) {
+            for (let i = history.length - 1; i >= 0; i--) {
+                if (history[i].x === mirrorX && history[i].y === mirrorY) {
+                    history.splice(i, 1);
+                    break;
+                }
+            }
+        }
+    }
     redrawFromHistory();
     lastDrawnPos = {x, y};
+}
+
+function drawSymmetryAxes() {
+    ctx.save();
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    if (horizontalSymmetryActive) {
+        const y = horizontalAxis * pixelSize + pixelSize / 2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 20, y - 8);
+        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(canvas.width - 20, y + 8);
+        ctx.stroke();
+    }
+    if (verticalSymmetryActive) {
+        const x = verticalAxis * pixelSize + pixelSize / 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 8, canvas.height - 20);
+        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x + 8, canvas.height - 20);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.restore();
 }
 
 function drawPixel(e, forceDraw = false) {
@@ -99,6 +199,39 @@ function drawPixel(e, forceDraw = false) {
     ctx.strokeStyle = '#eee';
     ctx.strokeRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
     history.push({x, y, color: currentColor, alpha: alphaValue});
+
+    if (horizontalSymmetryActive) {
+        const mirrorY = horizontalAxis * 2 - y;
+        if (mirrorY >= 0 && mirrorY < pixelHeight && mirrorY !== y) {
+            ctx.fillStyle = hexToRgba(currentColor, alphaValue);
+            ctx.fillRect(x * pixelSize, mirrorY * pixelSize, pixelSize, pixelSize);
+            ctx.strokeStyle = '#eee';
+            ctx.strokeRect(x * pixelSize, mirrorY * pixelSize, pixelSize, pixelSize);
+            history.push({x, y: mirrorY, color: currentColor, alpha: alphaValue});
+        }
+    }
+    if (verticalSymmetryActive) {
+        const mirrorX = verticalAxis * 2 - x;
+        if (mirrorX >= 0 && mirrorX < pixelWidth && mirrorX !== x) {
+            ctx.fillStyle = hexToRgba(currentColor, alphaValue);
+            ctx.fillRect(mirrorX * pixelSize, y * pixelSize, pixelSize, pixelSize);
+            ctx.strokeStyle = '#eee';
+            ctx.strokeRect(mirrorX * pixelSize, y * pixelSize, pixelSize, pixelSize);
+            history.push({x: mirrorX, y, color: currentColor, alpha: alphaValue});
+        }
+    }
+
+    if (horizontalSymmetryActive && verticalSymmetryActive) {
+        const mirrorY = horizontalAxis * 2 - y;
+        const mirrorX = verticalAxis * 2 - x;
+        if (mirrorY >= 0 && mirrorY < pixelHeight && mirrorY !== y && mirrorX >= 0 && mirrorX < pixelWidth && mirrorX !== x) {
+            ctx.fillStyle = hexToRgba(currentColor, alphaValue);
+            ctx.fillRect(mirrorX * pixelSize, mirrorY * pixelSize, pixelSize, pixelSize);
+            ctx.strokeStyle = '#eee';
+            ctx.strokeRect(mirrorX * pixelSize, mirrorY * pixelSize, pixelSize, pixelSize);
+            history.push({x: mirrorX, y: mirrorY, color: currentColor, alpha: alphaValue});
+        }
+    }
     if (history.length > 1000) history.shift();
     redoStack = [];
     updateColorHistory(currentColor);
@@ -181,15 +314,31 @@ function drawPixelsOnly() {
     }
 }
 
-function exportImage(format) {
+function exportImage(format, exportWidth, exportHeight) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    drawPixelsOnly();
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = exportWidth;
+    tempCanvas.height = exportHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    const scaleX = exportWidth / (pixelWidth * pixelSize);
+    const scaleY = exportHeight / (pixelHeight * pixelSize);
+    for (const action of history) {
+        const x = action.x * pixelSize * scaleX;
+        const y = action.y * pixelSize * scaleY;
+        const w = pixelSize * scaleX;
+        const h = pixelSize * scaleY;
+        tempCtx.fillStyle = action.alpha !== undefined ? hexToRgba(action.color, action.alpha) : action.color;
+        tempCtx.fillRect(x, y, w, h);
+        tempCtx.strokeStyle = '#eee';
+        tempCtx.strokeRect(x, y, w, h);
+    }
     let dataUrl = null;
     if (format === 'png') {
-        dataUrl = canvas.toDataURL('image/png');
+        dataUrl = tempCanvas.toDataURL('image/png');
     } else if (format === 'jpg') {
-        dataUrl = canvas.toDataURL('image/jpeg');
+        dataUrl = tempCanvas.toDataURL('image/jpeg');
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -243,14 +392,32 @@ document.addEventListener('keydown', function(e) {
     }
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
-        drawPixelsOnly();
-        canvas.toBlob(function(blob) {
+
+        const exportWidthInput = document.getElementById('exportWidth');
+        const exportHeightInput = document.getElementById('exportHeight');
+        let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : canvas.width;
+        let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : canvas.height;
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = exportWidth;
+        tempCanvas.height = exportHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        const scaleX = exportWidth / (pixelWidth * pixelSize);
+        const scaleY = exportHeight / (pixelHeight * pixelSize);
+        for (const action of history) {
+            const x = action.x * pixelSize * scaleX;
+            const y = action.y * pixelSize * scaleY;
+            const w = pixelSize * scaleX;
+            const h = pixelSize * scaleY;
+            tempCtx.fillStyle = action.alpha !== undefined ? hexToRgba(action.color, action.alpha) : action.color;
+            tempCtx.fillRect(x, y, w, h);
+        }
+        tempCanvas.toBlob(function(blob) {
             const item = new ClipboardItem({ 'image/png': blob });
             navigator.clipboard.write([item]).then(() => {
             }).catch(() => {
                 alert('Failed to copy image to clipboard.');
             });
-            redrawFromHistory();
         }, 'image/png');
     }
     if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
@@ -321,10 +488,63 @@ document.addEventListener('keyup', function(e) {
     }
 });
 
+horizontalSymmetryBtn.addEventListener('click', () => {
+    horizontalSymmetryActive = !horizontalSymmetryActive;
+    redrawFromHistory();
+    drawSymmetryAxes();
+});
+verticalSymmetryBtn.addEventListener('click', () => {
+    verticalSymmetryActive = !verticalSymmetryActive;
+    redrawFromHistory();
+    drawSymmetryAxes();
+});
+
+canvas.addEventListener('mousedown', function(e) {
+    if (e.button === 2) {
+        isErasing = true;
+        lastDrawnPos = null;
+        erasePixel(e);
+        return;
+    }
+
+    if (e.shiftKey) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = Math.floor((e.clientX - rect.left) / pixelSize);
+        const mouseY = Math.floor((e.clientY - rect.top) / pixelSize);
+        let updated = false;
+        if (horizontalSymmetryActive) {
+            horizontalAxis = Math.max(0, Math.min(pixelHeight - 1, mouseY));
+            updated = true;
+        }
+        if (verticalSymmetryActive) {
+            verticalAxis = Math.max(0, Math.min(pixelWidth - 1, mouseX));
+            updated = true;
+        }
+        if (updated) {
+            redrawFromHistory();
+            drawSymmetryAxes();
+            return;
+        }
+    }
+    isDrawing = true;
+    lastDrawnPos = null;
+    drawPixel(e, true);
+});
+
+const oldDrawGrid = drawGrid;
+drawGrid = function() {
+    oldDrawGrid();
+    drawSymmetryAxes();
+};
+
 ipcRenderer.on('export-image', (event, filePath) => {
     let ext = filePath.split('.').pop().toLowerCase();
     let format = ext === 'jpg' || ext === 'jpeg' ? 'jpg' : 'png';
-    let dataUrl = exportImage(format);
+    const exportWidthInput = document.getElementById('exportWidth');
+    const exportHeightInput = document.getElementById('exportHeight');
+    let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : canvas.width;
+    let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : canvas.height;
+    let dataUrl = exportImage(format, exportWidth, exportHeight);
     ipcRenderer.send('export-image-data', { filePath, dataUrl });
 });
 

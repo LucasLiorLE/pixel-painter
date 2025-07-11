@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <title>Pixel Painter</title>
 </head>
 <body>
     <div class="controls">
@@ -34,16 +35,13 @@
     <div class="export-size-row" style="margin: 16px 0; display: flex; gap: 16px; align-items: center; justify-content: center;">
         <label>Export Width: <input type="number" id="exportWidth" value="256" min="1" max="1024" style="width: 60px;"></label>
         <label>Export Height: <input type="number" id="exportHeight" value="256" min="1" max="1024" style="width: 60px;"></label>
+        <button id="exportPNG">Export PNG</button>
+        <button id="exportJPG">Export JPG</button>
+        <button id="exportPP">Export .pp</button>
+        <input type="file" id="importPP" accept=".pp" style="display:none">
+        <button id="importPPBtn">Import .pp</button>
     </div>
-    <div class="update-mode-row">
-        <label style="font-size: 0.95em;">Auto-update:
-            <select id="updateMode">
-                <option value="release">On new release</option>
-                <option value="commit">On every commit (Not implemented yet)</option>
-                <option value="never">Never</option>
-            </select>
-        </label>
-    </div>
+    <!-- Auto-update removed for static site version -->
     <script src="app.js"></script>
 </body>
 </html>
