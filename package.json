@@ -4,9 +4,17 @@
   "description": "A simple pixel painter app so I can design logos and icons easier.",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.pixelpainter.app",
+    "win": {
+      "target": "nsis"
+    }
   },
   "devDependencies": {
-    "electron": "^30.0.0"
+    "electron": "^30.0.0",
+    "electron-builder": "^26.0.12"
   }
 }
