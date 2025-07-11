@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Painter v1.0.2</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,11 +10,20 @@
         <div class="size-column">
             <label>Width: <input type="number" id="canvasWidth" value="16" min="1" max="128"></label>
             <label>Height: <input type="number" id="canvasHeight" value="16" min="1" max="128"></label>
+            <button id="resizeCanvas">Set Size/Clean</button>
         </div>
-        <button id="resizeCanvas">Set Size/Clean</button>
-        <div style="display: flex; flex-direction: column; align-items: flex-start;">
-            <input type="color" id="colorPicker" value="#000000">
-            <div id="colorHistory" class="color-history"></div>
+        <div class="color-controls">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                <div style="display: flex; flex-direction: row; align-items: center; gap: 16px;">
+                    <input type="color" id="colorPicker" value="#000000">
+                    <label class="alpha-group">
+                        Alpha:
+                        <input type="range" id="alphaSlider" min="0" max="100" value="100">
+                        <span id="alphaLabel">100%</span>
+                    </label>
+                </div>
+                <div id="colorHistory" class="color-history" style="margin-top: 8px;"></div>
+            </div>
         </div>
     </div>
     <canvas id="pixelCanvas" width="256" height="256"></canvas>

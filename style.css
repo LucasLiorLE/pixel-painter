@@ -10,27 +10,41 @@ body {
 .controls {
     margin-bottom: 20px;
     display: flex;
-    gap: 10px;
+    gap: 24px;
     flex-wrap: wrap;
+    align-items: flex-start;
 }
 
 .size-column {
     display: flex;
     flex-direction: column;
-    justify-content: stretch;
-    gap: 4px;
+    gap: 8px;
+    min-width: 140px;
+}
+
+.color-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+}
+
+.alpha-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95em;
 }
 
 .color-history {
     display: flex;
     gap: 4px;
-    margin-top: 4px;
-    margin-left: 0;
+    margin-left: 8px;
     margin-bottom: 0;
 }
 .color-swatch {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border: 1px solid #aaa;
     outline: none;
     cursor: pointer;
@@ -47,4 +61,5 @@ canvas {
     border: 2px solid #333;
     image-rendering: pixelated;
     cursor: crosshair;
+    margin-top: 10px;
 }
