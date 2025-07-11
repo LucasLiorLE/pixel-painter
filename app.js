@@ -106,6 +106,15 @@ colorPicker.addEventListener('input', function() {
 
 window.addEventListener('DOMContentLoaded', () => {
     renderColorHistory();
+    const updateModeSelect = document.getElementById('updateMode');
+    if (updateModeSelect) {
+        const savedMode = localStorage.getItem('updateMode');
+        if (savedMode) updateModeSelect.value = savedMode;
+        updateModeSelect.addEventListener('change', () => {
+            localStorage.setItem('updateMode', updateModeSelect.value);
+            window.postMessage({ type: 'updateMode', value: updateModeSelect.value }, '*');
+        });
+    }
 });
 
 resizeBtn.addEventListener('click', resizeCanvas);

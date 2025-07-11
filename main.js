@@ -1,4 +1,5 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 
@@ -15,6 +16,36 @@ function createWindow() {
     title: `Pixel Painter v${pkg.version}`
   });
 
+  let updateMode = 'release';
+
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.executeJavaScript('localStorage.getItem("updateMode")').then(mode => {
+      if (mode) updateMode = mode;
+      runUpdater(updateMode);
+    });
+  });
+  win.webContents.on('console-message', (e, level, message) => {
+    if (message.startsWith('updateMode:')) {
+      updateMode = message.split(':')[1];
+      runUpdater(updateMode);
+    }
+  });
+  win.webContents.on('ipc-message', (event, channel, data) => {
+    if (channel === 'window-message' && data && data.type === 'updateMode') {
+      updateMode = data.value;
+      runUpdater(updateMode);
+    }
+  });
+
+  function runUpdater(mode) {
+    if (mode === 'release') {
+      autoUpdater.checkForUpdatesAndNotify();
+    } else if (mode === 'commit') {
+      // would require custom update server, not implemented
+    } else if (mode === 'never') {
+      // nothing
+    }
+  }
   const menu = Menu.buildFromTemplate([
     {
       label: 'File',

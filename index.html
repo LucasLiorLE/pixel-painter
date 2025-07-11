@@ -19,6 +19,15 @@
         </div>
     </div>
     <canvas id="pixelCanvas" width="256" height="256"></canvas>
+    <div class="update-mode-row">
+        <label style="font-size: 0.95em;">Auto-update:
+            <select id="updateMode">
+                <option value="release">On new release</option>
+                <option value="commit">On every commit (Not implemented yet)</option>
+                <option value="never">Never</option>
+            </select>
+        </label>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
