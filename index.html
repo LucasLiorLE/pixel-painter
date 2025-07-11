@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel Painter</title>
+    <title>Pixel Painter v1.0.1</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="controls">
-        <label>Width: <input type="number" id="canvasWidth" value="16" min="1" max="128"></label>
-        <label>Height: <input type="number" id="canvasHeight" value="16" min="1" max="128"></label>
+        <div class="size-column">
+            <label>Width: <input type="number" id="canvasWidth" value="16" min="1" max="128"></label>
+            <label>Height: <input type="number" id="canvasHeight" value="16" min="1" max="128"></label>
+        </div>
         <button id="resizeCanvas">Set Size/Clean</button>
-        <input type="color" id="colorPicker" value="#000000">
+        <div style="display: flex; flex-direction: column; align-items: flex-start;">
+            <input type="color" id="colorPicker" value="#000000">
+            <div id="colorHistory" class="color-history"></div>
+        </div>
     </div>
     <canvas id="pixelCanvas" width="256" height="256"></canvas>
     <script src="app.js"></script>

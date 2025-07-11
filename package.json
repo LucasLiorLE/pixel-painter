@@ -1,6 +1,6 @@
 {
   "name": "pixel-painter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple pixel painter app so I can design logos and icons easier.",
   "main": "main.js",
   "scripts": {

@@ -13,6 +13,35 @@ body {
     gap: 10px;
     flex-wrap: wrap;
 }
+
+.size-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    gap: 4px;
+}
+
+.color-history {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    margin-left: 0;
+    margin-bottom: 0;
+}
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #aaa;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 4px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+}
+.color-swatch:focus {
+    border: 2px solid #333;
+}
 canvas {
     background: #fff;
     border: 2px solid #333;

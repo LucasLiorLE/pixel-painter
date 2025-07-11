@@ -2,6 +2,7 @@ const { ipcRenderer } = require('electron');
 const canvas = document.getElementById('pixelCanvas');
 const ctx = canvas.getContext('2d');
 const colorPicker = document.getElementById('colorPicker');
+const colorHistoryDiv = document.getElementById('colorHistory');
 const widthInput = document.getElementById('canvasWidth');
 const heightInput = document.getElementById('canvasHeight');
 const resizeBtn = document.getElementById('resizeCanvas');
@@ -9,7 +10,10 @@ const resizeBtn = document.getElementById('resizeCanvas');
 let pixelWidth = 16;
 let pixelHeight = 16;
 let pixelSize = 16;
+
 let currentColor = '#000000';
+let colorHistory = [currentColor];
+const maxColorHistory = 8;
 
 let history = [];
 let redoStack = [];
@@ -66,22 +70,68 @@ function drawPixel(e) {
     history.push({x, y, color: currentColor});
     if (history.length > 1000) history.shift();
     redoStack = [];
+    updateColorHistory(currentColor);
+}
+
+
+function updateColorHistory(newColor) {
+    if (colorHistory[colorHistory.length - 1] !== newColor) {
+        colorHistory = colorHistory.filter(c => c !== newColor);
+        colorHistory.push(newColor);
+        if (colorHistory.length > maxColorHistory) colorHistory.shift();
+        renderColorHistory();
+    }
+}
+
+function renderColorHistory() {
+    if (!colorHistoryDiv) return;
+    colorHistoryDiv.innerHTML = '';
+    colorHistory.forEach(color => {
+        const swatch = document.createElement('button');
+        swatch.className = 'color-swatch';
+        swatch.style.background = color;
+        swatch.title = color;
+        swatch.onclick = () => {
+            colorPicker.value = color;
+            currentColor = color;
+            updateColorHistory(color);
+        };
+        colorHistoryDiv.appendChild(swatch);
+    });
 }
 
 colorPicker.addEventListener('input', function() {
     currentColor = colorPicker.value;
 });
 
+window.addEventListener('DOMContentLoaded', () => {
+    renderColorHistory();
+});
+
 resizeBtn.addEventListener('click', resizeCanvas);
 
-function exportImage(format) {
-    redrawFromHistory();
-    if (format === 'png') {
-        return canvas.toDataURL('image/png');
-    } else if (format === 'jpg') {
-        return canvas.toDataURL('image/jpeg');
+function drawPixelsOnly() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const action of history) {
+        ctx.fillStyle = action.color;
+        ctx.fillRect(action.x * pixelSize, action.y * pixelSize, pixelSize, pixelSize);
     }
-    return null;
+}
+
+function exportImage(format) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    drawPixelsOnly();
+    let dataUrl = null;
+    if (format === 'png') {
+        dataUrl = canvas.toDataURL('image/png');
+    } else if (format === 'jpg') {
+        dataUrl = canvas.toDataURL('image/jpeg');
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    redrawFromHistory();
+    return dataUrl;
 }
 
 function undo() {
@@ -117,6 +167,18 @@ document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.key === 'y') {
         e.preventDefault();
         redo();
+    }
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        drawPixelsOnly();
+        canvas.toBlob(function(blob) {
+            const item = new ClipboardItem({ 'image/png': blob });
+            navigator.clipboard.write([item]).then(() => {
+            }).catch(() => {
+                alert('Failed to copy image to clipboard.');
+            });
+            redrawFromHistory();
+        }, 'image/png');
     }
 });
 

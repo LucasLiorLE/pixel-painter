@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 function createWindow() {
+  const pkg = require('./package.json');
   const win = new BrowserWindow({
     width: 600,
     height: 700,
@@ -11,6 +12,7 @@ function createWindow() {
       contextIsolation: false,
     },
     resizable: true,
+    title: `Pixel Painter v${pkg.version}`
   });
 
   const menu = Menu.buildFromTemplate([
@@ -74,6 +76,7 @@ function createWindow() {
   ]);
   Menu.setApplicationMenu(menu);
   win.loadFile('index.html');
+  win.setTitle(`Pixel Painter v${pkg.version}`);
 }
 
 ipcMain.on('export-image-data', (event, { filePath, dataUrl }) => {
