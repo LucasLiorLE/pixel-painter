@@ -7,15 +7,19 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function exportSpriteSheet() {
 
-    const frameW = pixelWidth * pixelSize;
-    const frameH = pixelHeight * pixelSize;
+    const exportWidthInput = document.getElementById('exportWidth');
+    const exportHeightInput = document.getElementById('exportHeight');
+    let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : pixelWidth * pixelSize;
+    let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : pixelHeight * pixelSize;
+
+    const frameW = exportWidth;
+    const frameH = exportHeight;
     const totalFrames = frames.length;
     let fps = 8;
     if (typeof playbackInput !== 'undefined' && playbackInput && playbackInput.value) {
         fps = Math.max(1, parseInt(playbackInput.value) || 8);
     }
     const cols = Math.min(fps, totalFrames);
-let canResizeCanvas = true;
     const rows = Math.ceil(totalFrames / cols);
     const sheetW = frameW * cols;
     const sheetH = frameH * rows;
@@ -26,19 +30,17 @@ let canResizeCanvas = true;
     for (let i = 0; i < totalFrames; i++) {
         const frame = frames[i];
         const x = (i % cols) * frameW;
-        canResizeCanvas = false;
         const y = Math.floor(i / cols) * frameH;
-
         for (const layer of frame.layers) {
             if (!layer.visible) continue;
             for (const action of layer.history) {
+                const scaleX = exportWidth / (pixelWidth * pixelSize);
+                const scaleY = exportHeight / (pixelHeight * pixelSize);
                 sheetCtx.fillStyle = hexToRgba(action.color, action.alpha !== undefined ? action.alpha : 1.0);
-                sheetCtx.fillRect(x + action.x * pixelSize, y + action.y * pixelSize, pixelSize, pixelSize);
+                sheetCtx.fillRect(x + action.x * pixelSize * scaleX, y + action.y * pixelSize * scaleY, pixelSize * scaleX, pixelSize * scaleY);
             }
         }
     }
-
-        canResizeCanvas = false;
     const dataUrl = sheetCanvas.toDataURL('image/png');
     const a = document.createElement('a');
     a.href = dataUrl;
@@ -58,20 +60,24 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function exportAllFrames() {
 
+    const exportWidthInput = document.getElementById('exportWidth');
+    const exportHeightInput = document.getElementById('exportHeight');
+    let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : pixelWidth * pixelSize;
+    let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : pixelHeight * pixelSize;
+
     const frameImages = [];
-    const width = pixelWidth * pixelSize;
-    const height = pixelHeight * pixelSize;
     frames.forEach((frame, idx) => {
         const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
+        tempCanvas.width = exportWidth;
+        tempCanvas.height = exportHeight;
         const tempCtx = tempCanvas.getContext('2d');
-
         for (const layer of frame.layers) {
             if (!layer.visible) continue;
             for (const action of layer.history) {
+                const scaleX = exportWidth / (pixelWidth * pixelSize);
+                const scaleY = exportHeight / (pixelHeight * pixelSize);
                 tempCtx.fillStyle = hexToRgba(action.color, action.alpha !== undefined ? action.alpha : 1.0);
-                tempCtx.fillRect(action.x * pixelSize, action.y * pixelSize, pixelSize, pixelSize);
+                tempCtx.fillRect(action.x * pixelSize * scaleX, action.y * pixelSize * scaleY, pixelSize * scaleX, pixelSize * scaleY);
             }
         }
         const dataUrl = tempCanvas.toDataURL('image/png');
@@ -364,20 +370,22 @@ document.addEventListener('keydown', function(e) {
     }
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
-
+        const exportWidthInput = document.getElementById('exportWidth');
+        const exportHeightInput = document.getElementById('exportHeight');
+        let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : pixelWidth * pixelSize;
+        let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : pixelHeight * pixelSize;
         if (frames.length === 1) {
             const frame = frames[0];
-            const width = pixelWidth * pixelSize;
-            const height = pixelHeight * pixelSize;
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = width;
-            tempCanvas.height = height;
+            tempCanvas.width = exportWidth;
+            tempCanvas.height = exportHeight;
             const tempCtx = tempCanvas.getContext('2d');
-
             for (const layer of frame.layers) {
                 for (const action of layer.history) {
+                    const scaleX = exportWidth / (pixelWidth * pixelSize);
+                    const scaleY = exportHeight / (pixelHeight * pixelSize);
                     tempCtx.fillStyle = hexToRgba(action.color, action.alpha !== undefined ? action.alpha : 1.0);
-                    tempCtx.fillRect(action.x * pixelSize, action.y * pixelSize, pixelSize, pixelSize);
+                    tempCtx.fillRect(action.x * pixelSize * scaleX, action.y * pixelSize * scaleY, pixelSize * scaleX, pixelSize * scaleY);
                 }
             }
             tempCanvas.toBlob(function(blob) {
@@ -388,32 +396,31 @@ document.addEventListener('keydown', function(e) {
                 });
             }, 'image/png');
         } else if (frames.length > 1) {
-
-            const frameW = pixelWidth * pixelSize;
-            const frameH = pixelHeight * pixelSize;
-            const totalFrames = frames.length;
             let fps = 8;
             if (typeof playbackInput !== 'undefined' && playbackInput && playbackInput.value) {
                 fps = Math.max(1, parseInt(playbackInput.value) || 8);
             }
-            const cols = Math.min(fps, totalFrames);
-            const rows = Math.ceil(totalFrames / cols);
+            const cols = Math.min(fps, frames.length);
+            const rows = Math.ceil(frames.length / cols);
+            const frameW = exportWidth;
+            const frameH = exportHeight;
             const sheetW = frameW * cols;
             const sheetH = frameH * rows;
             const sheetCanvas = document.createElement('canvas');
             sheetCanvas.width = sheetW;
             sheetCanvas.height = sheetH;
             const sheetCtx = sheetCanvas.getContext('2d');
-            for (let i = 0; i < totalFrames; i++) {
+            for (let i = 0; i < frames.length; i++) {
                 const frame = frames[i];
                 const x = (i % cols) * frameW;
                 const y = Math.floor(i / cols) * frameH;
-
                 for (const layer of frame.layers) {
                     if (!layer.visible) continue;
                     for (const action of layer.history) {
+                        const scaleX = exportWidth / (pixelWidth * pixelSize);
+                        const scaleY = exportHeight / (pixelHeight * pixelSize);
                         sheetCtx.fillStyle = hexToRgba(action.color, action.alpha !== undefined ? action.alpha : 1.0);
-                        sheetCtx.fillRect(x + action.x * pixelSize, y + action.y * pixelSize, pixelSize, pixelSize);
+                        sheetCtx.fillRect(x + action.x * pixelSize * scaleX, y + action.y * pixelSize * scaleY, pixelSize * scaleX, pixelSize * scaleY);
                     }
                 }
             }
@@ -875,33 +882,68 @@ document.addEventListener('keydown', function(e) {
     }
     if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
-
         const exportWidthInput = document.getElementById('exportWidth');
         const exportHeightInput = document.getElementById('exportHeight');
-        let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : canvas.width;
-        let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : canvas.height;
-
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = exportWidth;
-        tempCanvas.height = exportHeight;
-        const tempCtx = tempCanvas.getContext('2d');
-        const scaleX = exportWidth / (pixelWidth * pixelSize);
-        const scaleY = exportHeight / (pixelHeight * pixelSize);
-        for (const action of history) {
-            const x = action.x * pixelSize * scaleX;
-            const y = action.y * pixelSize * scaleY;
-            const w = pixelSize * scaleX;
-            const h = pixelSize * scaleY;
-            tempCtx.fillStyle = action.alpha !== undefined ? hexToRgba(action.color, action.alpha) : action.color;
-            tempCtx.fillRect(x, y, w, h);
+        let exportWidth = exportWidthInput ? parseInt(exportWidthInput.value) : pixelWidth * pixelSize;
+        let exportHeight = exportHeightInput ? parseInt(exportHeightInput.value) : pixelHeight * pixelSize;
+        if (frames.length === 1) {
+            const frame = frames[0];
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = exportWidth;
+            tempCanvas.height = exportHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            for (const layer of frame.layers) {
+                for (const action of layer.history) {
+                    const scaleX = exportWidth / (pixelWidth * pixelSize);
+                    const scaleY = exportHeight / (pixelHeight * pixelSize);
+                    tempCtx.fillStyle = hexToRgba(action.color, action.alpha !== undefined ? action.alpha : 1.0);
+                    tempCtx.fillRect(action.x * pixelSize * scaleX, action.y * pixelSize * scaleY, pixelSize * scaleX, pixelSize * scaleY);
+                }
+            }
+            tempCanvas.toBlob(function(blob) {
+                const item = new ClipboardItem({ 'image/png': blob });
+                navigator.clipboard.write([item]).then(() => {
+                }).catch(() => {
+                    alert('Failed to copy image to clipboard.');
+                });
+            }, 'image/png');
+        } else if (frames.length > 1) {
+            let fps = 8;
+            if (typeof playbackInput !== 'undefined' && playbackInput && playbackInput.value) {
+                fps = Math.max(1, parseInt(playbackInput.value) || 8);
+            }
+            const cols = Math.min(fps, frames.length);
+            const rows = Math.ceil(frames.length / cols);
+            const frameW = exportWidth;
+            const frameH = exportHeight;
+            const sheetW = frameW * cols;
+            const sheetH = frameH * rows;
+            const sheetCanvas = document.createElement('canvas');
+            sheetCanvas.width = sheetW;
+            sheetCanvas.height = sheetH;
+            const sheetCtx = sheetCanvas.getContext('2d');
+            for (let i = 0; i < frames.length; i++) {
+                const frame = frames[i];
+                const x = (i % cols) * frameW;
+                const y = Math.floor(i / cols) * frameH;
+                for (const layer of frame.layers) {
+                    if (!layer.visible) continue;
+                    for (const action of layer.history) {
+                        const scaleX = exportWidth / (pixelWidth * pixelSize);
+                        const scaleY = exportHeight / (pixelHeight * pixelSize);
+                        sheetCtx.fillStyle = hexToRgba(action.color, action.alpha !== undefined ? action.alpha : 1.0);
+                        sheetCtx.fillRect(x + action.x * pixelSize * scaleX, y + action.y * pixelSize * scaleY, pixelSize * scaleX, pixelSize * scaleY);
+                    }
+                }
+            }
+            sheetCanvas.toBlob(function(blob) {
+                const item = new ClipboardItem({ 'image/png': blob });
+                navigator.clipboard.write([item]).then(() => {
+                }).catch(() => {
+                    alert('Failed to copy sprite sheet to clipboard.');
+                });
+            }, 'image/png');
         }
-        tempCanvas.toBlob(function(blob) {
-            const item = new ClipboardItem({ 'image/png': blob });
-            navigator.clipboard.write([item]).then(() => {
-            }).catch(() => {
-                alert('Failed to copy image to clipboard.');
-            });
-        }, 'image/png');
     }
     if (e.ctrlKey && (e.key === 'v' || e.key === 'V')) {
         e.preventDefault();
