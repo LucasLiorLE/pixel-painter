@@ -10,7 +10,7 @@
         <div class="size-column">
             <label>Width: <input type="number" id="canvasWidth" value="16" min="1" max="128"></label>
             <label>Height: <input type="number" id="canvasHeight" value="16" min="1" max="128"></label>
-            <button id="resizeCanvas">Set Size/Clean</button>
+            <button id="resizeCanvas">Set Size</button>
         </div>
         <div class="color-controls">
             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
@@ -30,7 +30,23 @@
         <button id="horizontalSymmetryBtn">Horizontal Symmetry</button>
         <button id="verticalSymmetryBtn">Vertical Symmetry</button>
     </div>
-    <canvas id="pixelCanvas" width="256" height="256"></canvas>
+    <div style="display: flex; flex-direction: row; align-items: flex-start;">
+        <div style="flex: 1;">
+            <canvas id="pixelCanvas" width="256" height="256"></canvas>
+        </div>
+        <div id="layerPanel" style="min-width: 120px; margin-left: 16px; background: #fafafa; border: 1px solid #ccc; border-radius: 6px; padding: 8px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">Layers</div>
+            <div id="layersList"></div>
+            <button id="addLayerBtn" style="margin-top: 8px;">Add Layer</button>
+        <button id="clearLayerBtn" style="margin-top: 8px; margin-left: 8px;">Clear Layer</button>
+        </div>
+    </div>
+    <div id="framePanel" style="margin: 16px 0 0 0; display: flex; gap: 8px; align-items: center; justify-content: center; background: #fafafa; border: 1px solid #ccc; border-radius: 6px; padding: 8px;">
+        <button id="addFrameBtn">Add Frame</button>
+        <div id="framesList" style="display: flex; gap: 4px;"></div>
+        <button id="exportSheetBtn" style="margin-left: 16px;">Export Sprite Sheet</button>
+        <button id="exportFramesBtn" style="margin-left: 8px;">Export Frames</button>
+    </div>
     <div class="export-size-row" style="margin: 16px 0; display: flex; gap: 16px; align-items: center; justify-content: center;">
         <label>Export Width: <input type="number" id="exportWidth" value="256" min="1" max="1024" style="width: 60px;"></label>
         <label>Export Height: <input type="number" id="exportHeight" value="256" min="1" max="1024" style="width: 60px;"></label>
