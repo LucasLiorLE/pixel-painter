@@ -563,26 +563,26 @@ document.addEventListener('mouseup', function(e) {
     lastDrawnPos = null;
 });
 function erasePixel(e) {
+    const frame = frames[currentFrameIndex];
+    const layer = frame.layers[currentLayerIndex];
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / pixelSize);
     const y = Math.floor((e.clientY - rect.top) / pixelSize);
     if (lastDrawnPos && lastDrawnPos.x === x && lastDrawnPos.y === y) {
         return;
     }
-
-    for (let i = history.length - 1; i >= 0; i--) {
-        if (history[i].x === x && history[i].y === y) {
-            history.splice(i, 1);
+    for (let i = layer.history.length - 1; i >= 0; i--) {
+        if (layer.history[i].x === x && layer.history[i].y === y) {
+            layer.redoStack.push(layer.history.splice(i, 1)[0]);
             break;
         }
     }
-
     if (horizontalSymmetryActive) {
         const mirrorY = horizontalAxis * 2 - y;
         if (mirrorY >= 0 && mirrorY < pixelHeight && mirrorY !== y) {
-            for (let i = history.length - 1; i >= 0; i--) {
-                if (history[i].x === x && history[i].y === mirrorY) {
-                    history.splice(i, 1);
+            for (let i = layer.history.length - 1; i >= 0; i--) {
+                if (layer.history[i].x === x && layer.history[i].y === mirrorY) {
+                    layer.redoStack.push(layer.history.splice(i, 1)[0]);
                     break;
                 }
             }
@@ -591,22 +591,21 @@ function erasePixel(e) {
     if (verticalSymmetryActive) {
         const mirrorX = verticalAxis * 2 - x;
         if (mirrorX >= 0 && mirrorX < pixelWidth && mirrorX !== x) {
-            for (let i = history.length - 1; i >= 0; i--) {
-                if (history[i].x === mirrorX && history[i].y === y) {
-                    history.splice(i, 1);
+            for (let i = layer.history.length - 1; i >= 0; i--) {
+                if (layer.history[i].x === mirrorX && layer.history[i].y === y) {
+                    layer.redoStack.push(layer.history.splice(i, 1)[0]);
                     break;
                 }
             }
         }
     }
-
     if (horizontalSymmetryActive && verticalSymmetryActive) {
         const mirrorY = horizontalAxis * 2 - y;
         const mirrorX = verticalAxis * 2 - x;
         if (mirrorY >= 0 && mirrorY < pixelHeight && mirrorY !== y && mirrorX >= 0 && mirrorX < pixelWidth && mirrorX !== x) {
-            for (let i = history.length - 1; i >= 0; i--) {
-                if (history[i].x === mirrorX && history[i].y === mirrorY) {
-                    history.splice(i, 1);
+            for (let i = layer.history.length - 1; i >= 0; i--) {
+                if (layer.history[i].x === mirrorX && layer.history[i].y === mirrorY) {
+                    layer.redoStack.push(layer.history.splice(i, 1)[0]);
                     break;
                 }
             }
@@ -817,16 +816,24 @@ function exportImage(format, exportWidth, exportHeight) {
 }
 
 function undo() {
-    if (history.length > 0) {
-        redoStack.push(history.pop());
+    const frame = frames[currentFrameIndex];
+    const layer = frame.layers[currentLayerIndex];
+    if (layer.history.length > 0) {
+        layer.redoStack.push(layer.history.pop());
         redrawFromHistory();
+        renderLayersPanel();
+        renderFramesPanel();
     }
 }
 
 function redo() {
-    if (redoStack.length > 0) {
-        history.push(redoStack.pop());
+    const frame = frames[currentFrameIndex];
+    const layer = frame.layers[currentLayerIndex];
+    if (layer.redoStack.length > 0) {
+        layer.history.push(layer.redoStack.pop());
         redrawFromHistory();
+        renderLayersPanel();
+        renderFramesPanel();
     }
 }
 
